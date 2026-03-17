@@ -9,4 +9,4 @@ spring:
           lower-case-service-id: true
 
 server:
-  port: 443
+  port: 8765
