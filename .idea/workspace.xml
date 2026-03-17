@@ -4,15 +4,28 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="14f5085f-41c3-4e19-84c5-63bf9d6b073a" name="Changes" comment="" />
+    <list default="true" id="14f5085f-41c3-4e19-84c5-63bf9d6b073a" name="Changes" comment="chore: change api-gateway port to 8765 for local development">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ApiGateway/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/EurekaServer/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ApiGateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ApiGateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ApiGateway/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ConfigServer/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ConfigServer/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ConfigServer/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EurekaServer/src/main/resources/application.properties" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="3AtC3RZ5wByE9rg82m8pKqxvXOj" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -21,16 +34,57 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.ApiGatewayApplication.executor": "Run",
+    "Application.ConfigServerApplication.executor": "Debug",
     "Application.EurekaServerApplication.executor": "Run",
     "Maven.api-gateway [org.springframework.boot:spring-boot-maven-plugin:3.3.4:run].executor": "Run",
+    "Maven.config-server [clean].executor": "Run",
+    "Maven.config-server [org.apache.maven.plugins:maven-clean-plugin:3.3.2:clean].executor": "Run",
+    "Maven.config-server [org.springframework.boot:spring-boot-maven-plugin:3.3.4:run].executor": "Run",
+    "Maven.eureka-server [clean].executor": "Run",
+    "Maven.eureka-server [org.apache.maven.plugins:maven-clean-plugin:3.3.2:clean].executor": "Run",
     "Maven.eureka-server [org.springframework.boot:spring-boot-maven-plugin:3.3.4:run].executor": "Run",
     "Maven.eureka-server [org.springframework.boot:spring-boot-maven-plugin:3.4.4:run].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/User/Desktop/Java/CecP"
+    "last_opened_file_path": "C:/Users/User/Desktop/Java/CecP",
+    "settings.editor.selected.configurable": "preferences.pathVariables"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.ApiGatewayApplication">
+    <configuration name="ApiGatewayApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.santiagocz.api_gateway.ApiGatewayApplication" />
+      <module name="api-gateway" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.santiagocz.api_gateway.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ConfigServerApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <envs>
+        <env name="GIT_PASSWORD" value="$GIT_PASSWORD$" />
+        <env name="GIT_USER" value="$GIT_USER$" />
+      </envs>
+      <option name="MAIN_CLASS_NAME" value="com.santiagocz.config_server.ConfigServerApplication" />
+      <module name="config-server" />
+      <option name="VM_PARAMETERS" value="-DGIT_USER=$GIT_USER$ -DGIT_PASSWORD=ghp_tutoken" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.santiagocz.config_server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="EurekaServerApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.santiagocz.eureka_server.EurekaServerApplication" />
       <module name="eureka-server" />
@@ -44,21 +98,15 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="MicroserviceGym" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="MicroserviceGym" />
-      <option name="filePath" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+    <list>
+      <item itemvalue="Application.ApiGatewayApplication" />
+      <item itemvalue="Application.ConfigServerApplication" />
+      <item itemvalue="Application.EurekaServerApplication" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ApiGatewayApplication" />
+        <item itemvalue="Application.ConfigServerApplication" />
         <item itemvalue="Application.EurekaServerApplication" />
       </list>
     </recent_temporary>
@@ -72,6 +120,19 @@
       <option name="presentableId" value="Default" />
       <updated>1773402283267</updated>
     </task>
+    <task id="LOCAL-00001" summary="chore: change api-gateway port to 8765 for local development">
+      <option name="closed" value="true" />
+      <created>1773755479551</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1773755479552</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore: change api-gateway port to 8765 for local development" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: change api-gateway port to 8765 for local development" />
   </component>
 </project>
