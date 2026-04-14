@@ -1,6 +1,5 @@
 package com.santiagocz.clientservice.dto;
 
-import com.santiagocz.clientservice.domain.enums.MemberStatus;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,11 +35,4 @@ public class MemberRequestDto {
 
     @Past(message = "Birth date must be in the past")
     private LocalDate birthDate;
-
-    @NotNull(message = "Registration date is required")
-    @PastOrPresent(message = "Registration date cannot be in the future")
-    private LocalDate registrationDate;
-
-    @NotNull(message = "Status is required")
-    private MemberStatus status;
 }

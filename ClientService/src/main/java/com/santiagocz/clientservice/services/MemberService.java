@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,8 +73,6 @@ public class MemberService {
         member.setEmail(dto.getEmail());
         member.setPhone(dto.getPhone());
         member.setBirthDate(dto.getBirthDate());
-        member.setRegistrationDate(dto.getRegistrationDate());
-        member.setStatus(dto.getStatus());
 
         return buildResponseDto(memberRepository.save(member));
     }
@@ -82,6 +81,11 @@ public class MemberService {
     public void delete(Long id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
+
+        if (member.getStatus() == MemberStatus.INACTIVE) {
+            throw new RuntimeException("Member is already inactive");
+        }
+
         member.setStatus(MemberStatus.INACTIVE);
         memberRepository.save(member);
     }
@@ -109,8 +113,8 @@ public class MemberService {
                 .email(dto.getEmail())
                 .phone(dto.getPhone())
                 .birthDate(dto.getBirthDate())
-                .registrationDate(dto.getRegistrationDate())
-                .status(dto.getStatus())
+                .registrationDate(LocalDate.now())
+                .status(MemberStatus.ACTIVE)
                 .build();
     }
 }

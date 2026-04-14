@@ -1,5 +1,6 @@
 package com.santiagocz.clientservice.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -51,5 +52,24 @@ public class GlobalExceptionHandler {
         response.put("error", "Internal server error");
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex) {
+
+        String message = "A record with that data already exists";
+
+        if (ex.getMessage().contains("email")) {
+            message = "Email already exists";
+        } else if (ex.getMessage().contains("dni")) {
+            message = "DNI already exists";
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", message);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }
