@@ -36,3 +36,16 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Maven wrapper ###
+**/mvnw
+**/mvnw.cmd
+**/.mvn/
+
+### IntelliJ IDEA additional ###
+.idea/workspace.xml
+.idea/encodings.xml
+.idea/misc.xml
+
+### Git attributes ###
+**/.gitattributes

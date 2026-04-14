@@ -28,6 +28,11 @@
         <module>ApiGateway</module>
         <module>ConfigServer</module>
         <module>EurekaServer</module>
+
+        <module>ClientService</module>
+        <module>EmployeeService</module>
+        <module>MembershipService</module>
+        <module>PaymentService</module>
     </modules>
 
     <build>
