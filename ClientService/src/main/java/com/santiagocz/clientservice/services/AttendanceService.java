@@ -45,11 +45,13 @@ public class AttendanceService {
     }
 
     @Transactional
-    public AttendanceResponseDto checkIn(Long memberId) {
+    public AttendanceResponseDto checkIn(String dni) {
 
         // Verificar que el socio existe
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found with id: " + memberId));
+        Member member = memberRepository.findByDni(dni)
+                .orElseThrow(() -> new RuntimeException("Member not found with DNI: " + dni));
+
+        Long memberId = member.getId();
 
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
