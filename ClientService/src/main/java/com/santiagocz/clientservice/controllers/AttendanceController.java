@@ -32,8 +32,8 @@ public class AttendanceController {
         return ResponseEntity.ok(attendanceService.findByMemberIdBetweenDates(memberId, from, to));
     }
 
-    @PostMapping("/checkin/{memberId}")
-    public ResponseEntity<AttendanceResponseDto> checkIn(@PathVariable Long memberId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(attendanceService.checkIn(memberId));
+    @PostMapping("/checkin/{dni}")
+    public ResponseEntity<AttendanceResponseDto> checkIn(@PathVariable String dni) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(attendanceService.checkIn(dni));
     }
 }
