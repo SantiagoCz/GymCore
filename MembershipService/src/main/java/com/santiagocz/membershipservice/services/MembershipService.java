@@ -43,9 +43,7 @@ public class MembershipService {
 
     @Transactional
     public MembershipResponseDto create(MembershipRequestDto dto) {
-        if (membershipRepository.existsByName(dto.getName())) {
-            throw new RuntimeException("Membership already exists with name: " + dto.getName());
-        }
+        validateNameNotTaken(dto.getName());
         Membership membership = buildEntity(dto);
         membership.setStatus(MembershipStatus.ACTIVE);
         return buildResponseDto(membershipRepository.save(membership));
@@ -56,9 +54,12 @@ public class MembershipService {
         Membership membership = membershipRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Membership not found with id: " + id));
 
-        if (!membership.getName().equals(dto.getName()) &&
-                membershipRepository.existsByName(dto.getName())) {
-            throw new RuntimeException("Membership already exists with name: " + dto.getName());
+        if (membership.getStatus() == MembershipStatus.INACTIVE) {
+            throw new RuntimeException("Cannot update an inactive membership");
+        }
+
+        if (!membership.getName().equals(dto.getName())) {
+            validateNameNotTaken(dto.getName());
         }
 
         membership.setName(dto.getName());
@@ -70,10 +71,23 @@ public class MembershipService {
         return buildResponseDto(membershipRepository.save(membership));
     }
 
+    private void validateNameNotTaken(String name) {
+        membershipRepository.findByName(name).ifPresent(m -> {
+            if (m.getStatus() == MembershipStatus.ACTIVE) {
+                throw new RuntimeException("Membership already exists with name: " + name);
+            }
+        });
+    }
+
     @Transactional
     public void delete(Long id) {
         Membership membership = membershipRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Membership not found with id: " + id));
+
+        if (membership.getStatus() == MembershipStatus.INACTIVE) {
+            throw new RuntimeException("Membership is already inactive");
+        }
+
         membership.setStatus(MembershipStatus.INACTIVE);
         membershipRepository.save(membership);
     }
