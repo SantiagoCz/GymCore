@@ -1,4 +1,4 @@
-package com.santiagocz.clientservice.dto;
+package com.santiagocz.membershipservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

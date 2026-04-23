@@ -1,6 +1,6 @@
-package com.santiagocz.clientservice.repositories;
+package com.santiagocz.membershipservice.repositories;
 
-import com.santiagocz.clientservice.domain.entities.Attendance;
+import com.santiagocz.membershipservice.domain.entities.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,7 +32,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     @Query("SELECT COUNT(DISTINCT CAST(a.checkIn AS date)) " +
             "FROM Attendance a " +
-            "WHERE a.member.id = :memberId " +
+            "WHERE a.memberId = :memberId " +
             "AND a.checkIn BETWEEN :from AND :to")
     long countDistinctDaysByMemberIdAndCheckInBetween(
             @Param("memberId") Long memberId,

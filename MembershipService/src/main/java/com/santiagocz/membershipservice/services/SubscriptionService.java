@@ -1,5 +1,6 @@
 package com.santiagocz.membershipservice.services;
 
+import com.santiagocz.membershipservice.clients.MemberClient;
 import com.santiagocz.membershipservice.domain.entities.Membership;
 import com.santiagocz.membershipservice.domain.entities.Subscription;
 import com.santiagocz.membershipservice.domain.enums.SubscriptionStatus;
@@ -22,9 +23,11 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final MembershipRepository membershipRepository;
+    private final MemberClient memberClient;
 
     @Transactional(readOnly = true)
     public List<SubscriptionResponseDto> findByMemberId(Long memberId) {
+        validateMemberExists(memberId);
         return subscriptionRepository.findByMemberId(memberId)
                 .stream()
                 .map(this::buildResponseDto)
@@ -41,6 +44,7 @@ public class SubscriptionService {
 
     @Transactional(readOnly = true)
     public SubscriptionResponseDto findActiveByMemberId(Long memberId) {
+        validateMemberExists(memberId);
         Subscription subscription = subscriptionRepository
                 .findByMemberIdAndStatus(memberId, SubscriptionStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("No active subscription found for member: " + memberId));
@@ -49,6 +53,8 @@ public class SubscriptionService {
 
     @Transactional
     public SubscriptionResponseDto create(SubscriptionRequestDto dto) {
+
+        validateMemberExists(dto.getMemberId());
 
         subscriptionRepository.findByMemberIdAndStatus(dto.getMemberId(), SubscriptionStatus.ACTIVE)
                 .ifPresent(s -> {
@@ -89,6 +95,14 @@ public class SubscriptionService {
 
         expired.forEach(s -> s.setStatus(SubscriptionStatus.EXPIRED));
         subscriptionRepository.saveAll(expired);
+    }
+
+    private void validateMemberExists(Long memberId) {
+        try {
+            memberClient.getMemberById(memberId);
+        } catch (Exception e) {
+            throw new RuntimeException("Member not found with id: " + memberId);
+        }
     }
 
     // Mappers

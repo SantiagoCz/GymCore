@@ -1,7 +1,7 @@
-package com.santiagocz.clientservice.controllers;
+package com.santiagocz.membershipservice.controllers;
 
-import com.santiagocz.clientservice.dto.AttendanceResponseDto;
-import com.santiagocz.clientservice.services.AttendanceService;
+import com.santiagocz.membershipservice.dto.AttendanceResponseDto;
+import com.santiagocz.membershipservice.services.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;

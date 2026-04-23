@@ -1,4 +1,4 @@
-package com.santiagocz.clientservice.dto;
+package com.santiagocz.membershipservice.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

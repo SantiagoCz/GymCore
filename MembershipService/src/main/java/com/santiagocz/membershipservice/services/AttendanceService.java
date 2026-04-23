@@ -1,10 +1,12 @@
-package com.santiagocz.clientservice.services;
+package com.santiagocz.membershipservice.services;
 
-import com.santiagocz.clientservice.dto.AttendanceResponseDto;
-import com.santiagocz.clientservice.domain.entities.Attendance;
-import com.santiagocz.clientservice.domain.entities.Member;
-import com.santiagocz.clientservice.repositories.AttendanceRepository;
-import com.santiagocz.clientservice.repositories.MemberRepository;
+import com.santiagocz.membershipservice.clients.MemberClient;
+import com.santiagocz.membershipservice.domain.entities.Attendance;
+import com.santiagocz.membershipservice.dto.AttendanceResponseDto;
+import com.santiagocz.membershipservice.dto.MemberDto;
+import com.santiagocz.membershipservice.dto.SubscriptionResponseDto;
+import com.santiagocz.membershipservice.repositories.AttendanceRepository;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,34 +22,37 @@ import java.util.stream.Collectors;
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
-    private final MemberRepository memberRepository;
+    private final SubscriptionService subscriptionService;
+    private final MemberClient memberClient;
 
     private static final int DAILY_TRAINING_WINDOW_HOURS = 5; // TODO: fetch from gym config
-    private static final int WEEKLY_LIMIT = 3; // TODO: fetch from membership-service
 
     @Transactional(readOnly = true)
     public List<AttendanceResponseDto> findByMemberId(Long memberId) {
+        validateMemberExists(memberId);
+        MemberDto member = memberClient.getMemberById(memberId);
         return attendanceRepository.findByMemberId(memberId)
                 .stream()
-                .map(this::buildResponseDto)
+                .map(a -> buildResponseDto(a, member))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<AttendanceResponseDto> findByMemberIdBetweenDates(
-            Long memberId,
-            LocalDateTime from,
-            LocalDateTime to) {
+    public List<AttendanceResponseDto> findByMemberIdBetweenDates(Long memberId,
+                                                                  LocalDateTime from,
+                                                                  LocalDateTime to) {
+        validateMemberExists(memberId);
+        MemberDto member = memberClient.getMemberById(memberId);
         return attendanceRepository.findByMemberIdAndCheckInBetween(memberId, from, to)
                 .stream()
-                .map(this::buildResponseDto)
+                .map(a -> buildResponseDto(a, member))
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public AttendanceResponseDto checkIn(String dni) {
-        Member member = findMemberByDni(dni);
-        Long memberId = member.getId();
+
+        Long memberId = getIdMemberByDni(dni);
 
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
@@ -60,20 +65,18 @@ public class AttendanceService {
                 : getFirstEntryCheckOut(memberId);
 
         Attendance attendance = Attendance.builder()
-                .member(member)
+                .memberId(memberId)
                 .checkIn(LocalDateTime.now())
                 .checkOut(checkOut)
                 .build();
 
-        return buildResponseDto(attendanceRepository.save(attendance));
-    }
-
-    private Member findMemberByDni(String dni) {
-        return memberRepository.findByDni(dni)
-                .orElseThrow(() -> new RuntimeException("Member not found with DNI: " + dni));
+        return buildResponseDto(attendanceRepository.save(attendance),
+                memberClient.getMemberById(attendance.getMemberId()));
     }
 
     private LocalDateTime getFirstEntryCheckOut(Long memberId) {
+        int weeklyLimit = getWeeklyLimitSubscriptionByMemberId(memberId);
+
         LocalDateTime startOfWeek = LocalDate.now()
                 .with(DayOfWeek.MONDAY).atStartOfDay();
         LocalDateTime endOfWeek = LocalDate.now()
@@ -82,11 +85,16 @@ public class AttendanceService {
         long daysAttendedThisWeek = attendanceRepository
                 .countDistinctDaysByMemberIdAndCheckInBetween(memberId, startOfWeek, endOfWeek);
 
-        if (daysAttendedThisWeek >= WEEKLY_LIMIT) {
+        if (daysAttendedThisWeek >= weeklyLimit) {
             throw new RuntimeException("Weekly attendance limit reached");
         }
 
         return LocalDateTime.now().plusHours(DAILY_TRAINING_WINDOW_HOURS);
+    }
+
+    private Integer getWeeklyLimitSubscriptionByMemberId(Long memberId){
+        SubscriptionResponseDto subscription = subscriptionService.findActiveByMemberId(memberId);
+        return subscription.getMembership().getWeeklyLimit();
     }
 
     private LocalDateTime getReEntryCheckOut(Long memberId, LocalDateTime startOfDay, LocalDateTime endOfDay) {
@@ -103,13 +111,33 @@ public class AttendanceService {
         return windowEnd;
     }
 
+    private void validateMemberExists(Long memberId) {
+        try {
+            memberClient.getMemberById(memberId);
+        } catch (Exception e) {
+            throw new RuntimeException("Member not found with id: " + memberId);
+        }
+    }
+
+    private Long getIdMemberByDni(String dni) {
+        try {
+            MemberDto member = memberClient.getMemberByDni(dni);
+            if (!"ACTIVE".equals(member.getStatus())) {
+                throw new RuntimeException("Member is not active");
+            }
+            return member.getId();
+        } catch (FeignException.NotFound e) {
+            throw new RuntimeException("Member not found with DNI: " + dni);
+        }
+    }
+
     // Mapper
-    private AttendanceResponseDto buildResponseDto(Attendance attendance) {
+    private AttendanceResponseDto buildResponseDto(Attendance attendance, MemberDto member) {
         return AttendanceResponseDto.builder()
                 .id(attendance.getId())
-                .memberId(attendance.getMember().getId())
-                .memberFirstName(attendance.getMember().getFirstName())
-                .memberLastName(attendance.getMember().getLastName())
+                .memberId(attendance.getMemberId())
+                .memberFirstName(member.getFirstName())
+                .memberLastName(member.getLastName())
                 .checkIn(attendance.getCheckIn())
                 .checkOut(attendance.getCheckOut())
                 .build();
