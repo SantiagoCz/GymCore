@@ -6,7 +6,6 @@ import com.santiagocz.membershipservice.dto.AttendanceResponseDto;
 import com.santiagocz.membershipservice.dto.MemberDto;
 import com.santiagocz.membershipservice.dto.SubscriptionResponseDto;
 import com.santiagocz.membershipservice.repositories.AttendanceRepository;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,7 +125,7 @@ public class AttendanceService {
                 throw new RuntimeException("Member is not active");
             }
             return member.getId();
-        } catch (FeignException.NotFound e) {
+        } catch (Exception e) {
             throw new RuntimeException("Member not found with DNI: " + dni);
         }
     }
