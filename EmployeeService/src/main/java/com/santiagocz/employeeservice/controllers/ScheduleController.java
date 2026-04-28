@@ -39,6 +39,13 @@ public class ScheduleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.create(dto));
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<ScheduleResponseDto>> createBatch(
+            @Valid @RequestBody List<ScheduleRequestDto> dtos) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(scheduleService.createBatch(dtos));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleResponseDto> update(
             @PathVariable Long id,

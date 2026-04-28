@@ -2,6 +2,7 @@ package com.santiagocz.employeeservice.services;
 
 import com.santiagocz.employeeservice.domain.entities.Employee;
 import com.santiagocz.employeeservice.domain.entities.Schedule;
+import com.santiagocz.employeeservice.domain.enums.EmployeeStatus;
 import com.santiagocz.employeeservice.dto.ScheduleRequestDto;
 import com.santiagocz.employeeservice.dto.ScheduleResponseDto;
 import com.santiagocz.employeeservice.repositories.EmployeeRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,9 +45,12 @@ public class ScheduleService {
         Employee employee = employeeRepository.findById(dto.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + dto.getEmployeeId()));
 
-        if (scheduleRepository.existsByEmployeeIdAndDayOfWeek(dto.getEmployeeId(), dto.getDayOfWeek())) {
-            throw new RuntimeException("Employee already has a schedule for " + dto.getDayOfWeek());
+        if (employee.getStatus() == EmployeeStatus.INACTIVE) {
+            throw new RuntimeException("Cannot assign schedule to an inactive employee");
         }
+
+        validateNoOverlap(dto.getEmployeeId(), dto.getDayOfWeek(),
+                dto.getStartTime(), dto.getEndTime());
 
         Schedule schedule = Schedule.builder()
                 .employee(employee)
@@ -58,9 +63,19 @@ public class ScheduleService {
     }
 
     @Transactional
+    public List<ScheduleResponseDto> createBatch(List<ScheduleRequestDto> dtos) {
+        return dtos.stream()
+                .map(this::create)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public ScheduleResponseDto update(Long id, ScheduleRequestDto dto) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + id));
+
+        validateNoOverlap(schedule.getEmployee().getId(), dto.getDayOfWeek(),
+                dto.getStartTime(), dto.getEndTime());
 
         schedule.setDayOfWeek(dto.getDayOfWeek());
         schedule.setStartTime(dto.getStartTime());
@@ -79,6 +94,12 @@ public class ScheduleService {
     private void validateEmployeeExists(Long employeeId) {
         employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+    }
+
+    private void validateNoOverlap(Long employeeId, DayOfWeek day, LocalTime start, LocalTime end) {
+        if (scheduleRepository.existsOverlappingSchedule(employeeId, day, start, end)) {
+            throw new RuntimeException("Schedule overlaps with existing schedule on " + day);
+        }
     }
 
     // Mapper
