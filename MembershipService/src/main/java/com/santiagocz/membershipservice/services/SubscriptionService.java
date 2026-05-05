@@ -76,6 +76,18 @@ public class SubscriptionService {
     }
 
     @Transactional
+    public SubscriptionResponseDto renew(Long id) {
+        Subscription subscription = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+
+        subscription.setEndDate(subscription.getEndDate()
+                .plusDays(subscription.getMembership().getDurationDays()));
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+        return buildResponseDto(subscriptionRepository.save(subscription));
+    }
+
+    @Transactional
     public SubscriptionResponseDto cancel(Long id) {
         Subscription subscription = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));

@@ -44,6 +44,11 @@ public class SubscriptionController {
                 .body(subscriptionService.create(dto));
     }
 
+    @PatchMapping("/{id}/renew")
+    public ResponseEntity<SubscriptionResponseDto> renew(@PathVariable Long id) {
+        return ResponseEntity.ok(subscriptionService.renew(id));
+    }
+
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<SubscriptionResponseDto> cancel(@PathVariable Long id) {
         return ResponseEntity.ok(subscriptionService.cancel(id));
