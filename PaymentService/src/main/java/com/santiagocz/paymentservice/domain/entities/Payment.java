@@ -24,10 +24,10 @@ public class Payment {
     private Long id;
 
     @Column(nullable = false)
-    private Long subscriptionId;
+    private Long memberId;
 
     @Column(nullable = false)
-    private Long memberId;
+    private Long membershipId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -17,8 +17,6 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
     List<Promotion> findByStatus(PromotionStatus status);
 
-    List<Promotion> findByCondition(PromotionCondition condition);
-
     @Query("SELECT p FROM Promotion p " +
             "WHERE p.status = 'ACTIVE' " +
             "AND p.startDate <= :today " +

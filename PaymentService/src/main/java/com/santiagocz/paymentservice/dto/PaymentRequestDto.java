@@ -15,11 +15,11 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentRequestDto {
 
-    @NotNull(message = "Subscription ID is required")
-    private Long subscriptionId;
-
     @NotNull(message = "Member ID is required")
     private Long memberId;
+
+    @NotNull(message = "Membership ID is required")
+    private Long membershipId;
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;

@@ -27,16 +27,27 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.findByMemberId(memberId));
     }
 
-    @GetMapping("/subscription/{subscriptionId}")
+    @GetMapping("/subscription/{membershipId}")
     public ResponseEntity<List<PaymentResponseDto>> findBySubscriptionId(
-            @PathVariable Long subscriptionId) {
-        return ResponseEntity.ok(paymentService.findBySubscriptionId(subscriptionId));
+            @PathVariable Long membershipId) {
+        return ResponseEntity.ok(paymentService.findByMembershipId(membershipId));
     }
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<PaymentResponseDto>> findByStatus(
             @PathVariable PaymentStatus status) {
         return ResponseEntity.ok(paymentService.findByStatus(status));
+    }
+
+    @GetMapping("/member/{memberId}/between")
+    public ResponseEntity<List<PaymentResponseDto>> findByMemberIdAndDateRange(
+            @PathVariable Long memberId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(paymentService.findByMemberIdAndDateRange(
+                memberId,
+                from.atStartOfDay(),
+                to.atTime(23, 59, 59)));
     }
 
     @GetMapping("/between")

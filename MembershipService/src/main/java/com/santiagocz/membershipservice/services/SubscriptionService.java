@@ -76,13 +76,26 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public SubscriptionResponseDto renew(Long id) {
-        Subscription subscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+    public SubscriptionResponseDto renew(Long memberId, Long membershipId) {
 
-        subscription.setEndDate(subscription.getEndDate()
-                .plusDays(subscription.getMembership().getDurationDays()));
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        // Expire active subscription
+        subscriptionRepository.findByMemberIdAndStatus(memberId, SubscriptionStatus.ACTIVE)
+                .ifPresent(s -> {
+                    s.setStatus(SubscriptionStatus.EXPIRED);
+                    subscriptionRepository.save(s);
+                });
+
+        // Create new subscription
+        Membership membership = membershipRepository.findById(membershipId)
+                .orElseThrow(() -> new RuntimeException("Membership not found with id: " + membershipId));
+
+        Subscription subscription = Subscription.builder()
+                .memberId(memberId)
+                .membership(membership)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(membership.getDurationDays()))
+                .status(SubscriptionStatus.ACTIVE)
+                .build();
 
         return buildResponseDto(subscriptionRepository.save(subscription));
     }

@@ -1,16 +1,13 @@
 package com.santiagocz.paymentservice.services;
 
 import com.santiagocz.paymentservice.clients.MemberClient;
-import com.santiagocz.paymentservice.clients.SubscriptionClient;
+import com.santiagocz.paymentservice.clients.MembershipClient;
 import com.santiagocz.paymentservice.domain.entities.Payment;
 import com.santiagocz.paymentservice.domain.entities.Promotion;
 import com.santiagocz.paymentservice.domain.enums.DiscountType;
 import com.santiagocz.paymentservice.domain.enums.PaymentStatus;
 import com.santiagocz.paymentservice.domain.enums.PromotionCondition;
-import com.santiagocz.paymentservice.dto.MemberDto;
-import com.santiagocz.paymentservice.dto.PaymentRequestDto;
-import com.santiagocz.paymentservice.dto.PaymentResponseDto;
-import com.santiagocz.paymentservice.dto.SubscriptionDto;
+import com.santiagocz.paymentservice.dto.*;
 import com.santiagocz.paymentservice.repositories.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,8 +26,8 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PromotionService promotionService;
-    private final SubscriptionClient subscriptionClient;
     private final MemberClient memberClient;
+    private final MembershipClient membershipClient;
 
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> findByMemberId(Long memberId) {
@@ -41,8 +38,8 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentResponseDto> findBySubscriptionId(Long subscriptionId) {
-        return paymentRepository.findBySubscriptionId(subscriptionId)
+    public List<PaymentResponseDto> findByMembershipId(Long membershipId) {
+        return paymentRepository.findByMembershipId(membershipId)
                 .stream()
                 .map(this::buildResponseDto)
                 .collect(Collectors.toList());
@@ -64,28 +61,30 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<PaymentResponseDto> findByMemberIdAndDateRange(Long memberId, LocalDateTime from, LocalDateTime to) {
+        MemberDto member = validateMember(memberId);
+        return paymentRepository.findByMemberIdAndPaymentDateBetween(member.getId(), from, to)
+                .stream()
+                .map(this::buildResponseDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public PaymentResponseDto create(PaymentRequestDto dto) {
 
-        // 1. Validar que el socio existe y está activo
         MemberDto member = validateMember(dto.getMemberId());
 
-        // 2. Obtener la suscripción y su membresía
-        SubscriptionDto subscription = getSubscription(dto.getSubscriptionId());
+        MembershipDto membership = getMembership(dto.getMembershipId());
+        BigDecimal originalAmount = membership.getPrice();
 
-        // 3. Calcular el descuento
-        BigDecimal originalAmount = subscription.getMembership().getPrice();
         BigDecimal discountAmount = calculateDiscount(dto, member, originalAmount);
         String discountReason = resolveDiscountReason(dto, member);
+        BigDecimal finalAmount = originalAmount.subtract(discountAmount).max(BigDecimal.ZERO);
 
-        // 4. Calcular el monto final
-        BigDecimal finalAmount = originalAmount.subtract(discountAmount)
-                .max(BigDecimal.ZERO); // nunca negativo
-
-        // 5. Registrar el pago
         Payment payment = Payment.builder()
-                .subscriptionId(dto.getSubscriptionId())
                 .memberId(dto.getMemberId())
+                .membershipId(dto.getMembershipId())
                 .paymentMethod(dto.getPaymentMethod())
                 .originalAmount(originalAmount)
                 .discountAmount(discountAmount)
@@ -97,12 +96,11 @@ public class PaymentService {
                 .paymentDate(LocalDateTime.now())
                 .build();
 
-        PaymentResponseDto response = buildResponseDto(paymentRepository.save(payment));
+        paymentRepository.save(payment);
 
-        // 6. Renovar la suscripción
-        subscriptionClient.renew(dto.getSubscriptionId());
+        membershipClient.renew(dto.getMemberId(), dto.getMembershipId());
 
-        return response;
+        return buildResponseDto(payment);
     }
 
     @Transactional
@@ -119,6 +117,14 @@ public class PaymentService {
     }
 
     // Helpers
+    private MembershipDto getMembership(Long membershipId) {
+        try {
+            return membershipClient.getMembershipById(membershipId);
+        } catch (Exception e) {
+            throw new RuntimeException("Membership not found with id: " + membershipId);
+        }
+    }
+
     private MemberDto validateMember(Long memberId) {
         try {
             MemberDto member = memberClient.getMemberById(memberId);
@@ -133,23 +139,15 @@ public class PaymentService {
         }
     }
 
-    private SubscriptionDto getSubscription(Long subscriptionId) {
-        try {
-            return subscriptionClient.getById(subscriptionId);
-        } catch (Exception e) {
-            throw new RuntimeException("Subscription not found with id: " + subscriptionId);
-        }
-    }
-
     private BigDecimal calculateDiscount(PaymentRequestDto dto, MemberDto member, BigDecimal originalAmount) {
 
-        // Si hay descuento manual, tiene prioridad
+        // If there is a manual discount, it takes priority.
         if (dto.getManualDiscountAmount() != null &&
                 dto.getManualDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
             return dto.getManualDiscountAmount();
         }
 
-        // Detectar promoción automática
+        // Detect automatic promotion
         PromotionCondition condition = isNewMember(member)
                 ? PromotionCondition.NEW_MEMBER
                 : PromotionCondition.ALL_MEMBERS;
@@ -199,8 +197,8 @@ public class PaymentService {
     private PaymentResponseDto buildResponseDto(Payment payment) {
         return PaymentResponseDto.builder()
                 .id(payment.getId())
-                .subscriptionId(payment.getSubscriptionId())
                 .memberId(payment.getMemberId())
+                .membershipId(payment.getMembershipId())
                 .paymentMethod(payment.getPaymentMethod())
                 .originalAmount(payment.getOriginalAmount())
                 .discountAmount(payment.getDiscountAmount())
