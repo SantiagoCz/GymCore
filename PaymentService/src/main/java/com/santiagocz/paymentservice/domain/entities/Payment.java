@@ -24,10 +24,10 @@ public class Payment {
     private Long id;
 
     @Column(nullable = false)
-    private Long memberId;
+    private Long subscriptionId;
 
     @Column(nullable = false)
-    private Long membershipId;
+    private Long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,9 +43,7 @@ public class Payment {
     private BigDecimal finalAmount;
 
     private String discountReason;
-
     private String voucher;
-
     private String notes;
 
     @Enumerated(EnumType.STRING)

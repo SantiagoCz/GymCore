@@ -38,8 +38,8 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentResponseDto> findByMembershipId(Long membershipId) {
-        return paymentRepository.findByMembershipId(membershipId)
+    public List<PaymentResponseDto> findBySubscriptionId(Long subscriptionId) {
+        return paymentRepository.findBySubscriptionId(subscriptionId)
                 .stream()
                 .map(this::buildResponseDto)
                 .collect(Collectors.toList());
@@ -82,9 +82,12 @@ public class PaymentService {
         String discountReason = resolveDiscountReason(dto, member);
         BigDecimal finalAmount = originalAmount.subtract(discountAmount).max(BigDecimal.ZERO);
 
+        // Create or renew subscription
+        SubscriptionDto subscription = membershipClient.create(dto.getMemberId(), dto.getMembershipId());
+
         Payment payment = Payment.builder()
+                .subscriptionId(subscription.getId())
                 .memberId(dto.getMemberId())
-                .membershipId(dto.getMembershipId())
                 .paymentMethod(dto.getPaymentMethod())
                 .originalAmount(originalAmount)
                 .discountAmount(discountAmount)
@@ -96,11 +99,7 @@ public class PaymentService {
                 .paymentDate(LocalDateTime.now())
                 .build();
 
-        paymentRepository.save(payment);
-
-        membershipClient.renew(dto.getMemberId(), dto.getMembershipId());
-
-        return buildResponseDto(payment);
+        return buildResponseDto(paymentRepository.save(payment));
     }
 
     @Transactional
@@ -113,7 +112,11 @@ public class PaymentService {
         }
 
         payment.setStatus(PaymentStatus.REFUNDED);
-        return buildResponseDto(paymentRepository.save(payment));
+        paymentRepository.save(payment);
+
+        membershipClient.cancelActiveSubscription(payment.getMemberId());
+
+        return buildResponseDto(payment);
     }
 
     // Helpers
@@ -197,8 +200,8 @@ public class PaymentService {
     private PaymentResponseDto buildResponseDto(Payment payment) {
         return PaymentResponseDto.builder()
                 .id(payment.getId())
+                .subscriptionId(payment.getSubscriptionId())
                 .memberId(payment.getMemberId())
-                .membershipId(payment.getMembershipId())
                 .paymentMethod(payment.getPaymentMethod())
                 .originalAmount(payment.getOriginalAmount())
                 .discountAmount(payment.getDiscountAmount())

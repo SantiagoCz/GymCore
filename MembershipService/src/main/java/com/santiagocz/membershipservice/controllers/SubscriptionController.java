@@ -1,12 +1,9 @@
 package com.santiagocz.membershipservice.controllers;
 
 import com.santiagocz.membershipservice.domain.enums.SubscriptionStatus;
-import com.santiagocz.membershipservice.dto.SubscriptionRequestDto;
 import com.santiagocz.membershipservice.dto.SubscriptionResponseDto;
 import com.santiagocz.membershipservice.services.SubscriptionService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,20 +36,19 @@ public class SubscriptionController {
 
     @PostMapping
     public ResponseEntity<SubscriptionResponseDto> create(
-            @Valid @RequestBody SubscriptionRequestDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(subscriptionService.create(dto));
-    }
-
-    @PostMapping("/renew")
-    public ResponseEntity<SubscriptionResponseDto> renew(
             @RequestParam Long memberId,
             @RequestParam Long membershipId) {
-        return ResponseEntity.ok(subscriptionService.renew(memberId, membershipId));
+        return ResponseEntity.ok(subscriptionService.create(memberId, membershipId));
     }
 
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<SubscriptionResponseDto> cancel(@PathVariable Long id) {
         return ResponseEntity.ok(subscriptionService.cancel(id));
+    }
+
+    @PostMapping("/cancel-active")
+    public ResponseEntity<Void> cancelActive(@RequestParam Long memberId) {
+        subscriptionService.cancelActive(memberId);
+        return ResponseEntity.noContent().build();
     }
 }

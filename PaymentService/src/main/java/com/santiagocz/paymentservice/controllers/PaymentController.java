@@ -27,10 +27,10 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.findByMemberId(memberId));
     }
 
-    @GetMapping("/subscription/{membershipId}")
+    @GetMapping("/subscription/{subscriptionId}")
     public ResponseEntity<List<PaymentResponseDto>> findBySubscriptionId(
-            @PathVariable Long membershipId) {
-        return ResponseEntity.ok(paymentService.findByMembershipId(membershipId));
+            @PathVariable Long subscriptionId) {
+        return ResponseEntity.ok(paymentService.findBySubscriptionId(subscriptionId));
     }
 
     @GetMapping("/status/{status}")

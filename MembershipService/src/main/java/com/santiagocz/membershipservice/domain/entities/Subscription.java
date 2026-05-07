@@ -22,7 +22,7 @@ public class Subscription {
     private Long id;
 
     @Column(nullable = false)
-    private Long memberId; // referencia al Client Service
+    private Long memberId;
 
     @ManyToOne
     @JoinColumn(name = "membership_id", nullable = false)

@@ -28,8 +28,6 @@ public class PaymentRequestDto {
     private BigDecimal manualDiscountAmount;
 
     private String discountReason;
-
     private String voucher;
-
     private String notes;
 }

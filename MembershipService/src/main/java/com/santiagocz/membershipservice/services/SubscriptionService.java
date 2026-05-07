@@ -5,7 +5,6 @@ import com.santiagocz.membershipservice.domain.entities.Membership;
 import com.santiagocz.membershipservice.domain.entities.Subscription;
 import com.santiagocz.membershipservice.domain.enums.SubscriptionStatus;
 import com.santiagocz.membershipservice.dto.MembershipResponseDto;
-import com.santiagocz.membershipservice.dto.SubscriptionRequestDto;
 import com.santiagocz.membershipservice.dto.SubscriptionResponseDto;
 import com.santiagocz.membershipservice.repositories.MembershipRepository;
 import com.santiagocz.membershipservice.repositories.SubscriptionRepository;
@@ -52,31 +51,9 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public SubscriptionResponseDto create(SubscriptionRequestDto dto) {
+    public SubscriptionResponseDto create(Long memberId, Long membershipId) {
 
-        validateMemberExists(dto.getMemberId());
-
-        subscriptionRepository.findByMemberIdAndStatus(dto.getMemberId(), SubscriptionStatus.ACTIVE)
-                .ifPresent(s -> {
-                    throw new RuntimeException("Member already has an active subscription");
-                });
-
-        Membership membership = membershipRepository.findById(dto.getMembershipId())
-                .orElseThrow(() -> new RuntimeException("Membership not found with id: " + dto.getMembershipId()));
-
-        Subscription subscription = Subscription.builder()
-                .memberId(dto.getMemberId())
-                .membership(membership)
-                .startDate(dto.getStartDate())
-                .endDate(dto.getStartDate().plusDays(membership.getDurationDays()))
-                .status(SubscriptionStatus.ACTIVE)
-                .build();
-
-        return buildResponseDto(subscriptionRepository.save(subscription));
-    }
-
-    @Transactional
-    public SubscriptionResponseDto renew(Long memberId, Long membershipId) {
+        validateMemberExists(memberId);
 
         // Expire active subscription
         subscriptionRepository.findByMemberIdAndStatus(memberId, SubscriptionStatus.ACTIVE)
@@ -85,7 +62,6 @@ public class SubscriptionService {
                     subscriptionRepository.save(s);
                 });
 
-        // Create new subscription
         Membership membership = membershipRepository.findById(membershipId)
                 .orElseThrow(() -> new RuntimeException("Membership not found with id: " + membershipId));
 
@@ -111,6 +87,12 @@ public class SubscriptionService {
 
         subscription.setStatus(SubscriptionStatus.CANCELLED);
         return buildResponseDto(subscriptionRepository.save(subscription));
+    }
+
+    @Transactional
+    public void cancelActive(Long memberId) {
+        subscriptionRepository.findByMemberIdAndStatus(memberId, SubscriptionStatus.ACTIVE)
+                .ifPresent(s -> cancel(s.getId()));
     }
 
     @Transactional
